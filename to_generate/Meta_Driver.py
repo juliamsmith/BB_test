@@ -22,20 +22,22 @@ def writebatchscript(num_sims, in_titles, out_titles, conditions_name):
 
 
 
-def vary_params(dim_vec, m_prop_vec, RB_time_vec, num_sims):
+def vary_params(dim_vec, m_prop_vec, RB_time_vec, num_sims, max_m_vec):
     for i in range(len(dim_vec)):
         dim_val = dim_vec[i]
         for j in range(len(m_prop_vec)):
             m_prop_val = m_prop_vec[j]
             for k in range(len(RB_time_vec)):
-                RB_time_val = RB_time_vec[k] 
-                [in_titles, out_titles, conditions_name] = in_write(dim_val, m_prop_val, RB_time_val, num_sims)
-#                 for l in in_titles:
-#                     shutil.move(l, "{}/parameters".format(conditions_name))
-                script=writebatchscript(num_sims, in_titles, out_titles, conditions_name)
-                full_name="../to_run/{}.sh".format(conditions_name) #assumes it's in the to_generate file
-                with open(full_name,"w") as f:
-                    f.write(script)
+                RB_time_val = RB_time_vec[k]
+                for l in range(len(max_m_vec)):
+                    max_m_val = max_m_vec[l]           
+                    [in_titles, out_titles, conditions_name] = in_write(dim_val, m_prop_val, RB_time_val, num_sims, max_m_val)
+    #                 for l in in_titles:
+    #                     shutil.move(l, "{}/parameters".format(conditions_name))
+                    script=writebatchscript(num_sims, in_titles, out_titles, conditions_name)
+                    full_name="../to_run/{}.sh".format(conditions_name) #assumes it's in the to_generate file
+                    with open(full_name,"w") as f:
+                        f.write(script)
 
                 
                 

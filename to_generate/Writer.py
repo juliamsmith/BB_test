@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 from scipy.stats import truncnorm
 import os
 
-def in_write(dim_val, m_prop_val, RB_time_val, num_sims):
+def in_write(dim_val, m_prop_val, RB_time_val, num_sims, max_m_val):
     #timeline = SortedDict()
     t_max = 12 * 30 # time when simulation ends
 
@@ -52,8 +52,8 @@ def in_write(dim_val, m_prop_val, RB_time_val, num_sims):
     #Male strategies
     C_or_D='D'
 
-    max_maraud=0.15
-    prop_maraud=m_prop_val #only useful in discrete case
+    max_maraud=max_m_val
+    prop_maraud=round(m_prop_val,3) #only useful in discrete case #using round as a precaution because we got weird things last time
     strategies_string = 'numpy.random.choice(2, {}, p=[1-{}, {}])*{}'.format(males, prop_maraud, prop_maraud, max_maraud) #DISCRETE: 0, max_maraud
     #'numpy.random.random(males)*{}'.format(max_maraud) #UNIFORM DISTRIBUTION of strategies capped at max_maraud
 
