@@ -17,7 +17,12 @@ def in_write(dim_val, m_prop_val, RB_time_val, num_sims, max_m_val):
     # FEMALES
     F_per_M = 9 #The number of sexualy mature females per sexually mature male
     females = males * F_per_M # number of female birds
-    female_visit_param = [0, t_max / 2.0] # females visit early in the period
+    #BELOW: FV_std * truncnorm.rvs(FV_norm_range[0], FV_norm_range[1]) + FV_mean
+    FV_std = t_max / 4 
+    FV_mean = t_max / 2
+    FV_range = [0, t_max]
+    FV_norm_range =  [(FV_range[0] - FV_mean) / FV_std, (FV_range[1] - FV_mean) / FV_std]
+    female_visit_param = [FV_std, FV_mean, FV_norm_range[0], FV_norm_range[1]]  
 
     # POSITIONS AND TRAVEL TIME
     x_dim, y_dim = dim_val, dim_val # dimensions of environment

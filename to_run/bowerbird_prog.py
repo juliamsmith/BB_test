@@ -194,10 +194,10 @@ def action_mating_attempt(female_id, current_time):
     p = birds[last_location]["travel_preferences"].copy()
     # this line "undoes" the cumulative sum
     p = numpy.diff(numpy.concatenate((numpy.array([0]), p)))
-    extra_wait = 0.0
+    extra_wait = 0.0 
     if len(female["already_visited"]) == female["max_per_day"]:
         female["already_visited"] = []
-        extra_wait = female["wait_period"]  
+        extra_wait = female["wait_period"]  #HARD CODE
     tmp = numpy.random.rand()
     p = numpy.cumsum(p)
     scale_rand = p[-1]
@@ -205,7 +205,7 @@ def action_mating_attempt(female_id, current_time):
     target = numpy.argwhere(p > tmp)[0][0]
     time_to_travel = birds[last_location]["travel_times"][target]
     time_action_ends = current_time + time_to_travel
-    generate_ticket(start_time = time_action_ends + extra_wait, #HARD CODE
+    generate_ticket(start_time = time_action_ends + extra_wait, 
                     end_time = time_action_ends + extra_wait,
                     length_activity = time_to_travel + extra_wait,
                     owner = female_id,
@@ -325,7 +325,7 @@ def runsimulation(t_max, males, F_per_M, females,female_visit_param,x_dim,y_dim,
         female_id = "F" + str(i)
         female_birds.append(initialize_female(female_id, males)) #female IDs start where males end (if there are 10 males, the first female would be 11)
         #choose time for initial mating attempt
-        first_time = numpy.random.uniform(female_visit_param[0], female_visit_param[1])
+        first_time =  female_visit_param[0] * truncnorm.rvs(female_visit_param[2], female_visit_param[3]) + female_visit_param[1] 
         action_mating_attempt(female_id, first_time)
 
     # this is the main loop
