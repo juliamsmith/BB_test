@@ -25,7 +25,7 @@ for (my_condition in conditions){
 ```{r}
 ##I've generated it once and it takes forever -- now instead I'm saving it as a dataframe
 saveRDS(all_results, file="all_results_varying_pmar_dim=2250_rep=4.Rda")
-#to get read in: whatever_name <- readRDS(file="all_results_varying_pmar_dim=2250_rep=4.Rda")
+##to get read in: whatever_name <- readRDS(file="all_results_varying_pmar_dim=2250_rep=4.Rda")
 
 # all_results <- tibble()
 # for (my_condition in conditions){
@@ -39,7 +39,7 @@ saveRDS(all_results, file="all_results_varying_pmar_dim=2250_rep=4.Rda")
 #       my_rnd_seed <- strsplit(substr(my_file, 5, 1000), "D")[[1]][1]
 #       my_rnd_seed <- as.numeric(my_rnd_seed)
 #       tmp <- read_csv(paste0(my_dir_results, my_file)) %>% add_column(rnd_seed = my_rnd_seed, directory = my_condition)
-#       tmp <- tmp %>% select(probability_maraud, successful_mating, 
+#       tmp <- tmp %>% select(probability_maraud, successful_mating,
 #                             foraging_hrs, staying_hrs, repairing_hrs, marauding_events, marauding_hrs, marauding_events, traveling_hrs, rnd_seed, directory)
 #       all_results <- rbind(all_results, tmp)
 #     }
@@ -93,9 +93,9 @@ hist(all_results$successful_mating,  main="Bowerbird Mating Distribution",
 
 ```{r}
 # for (my_condition in conditions){
-#   name<-paste0("mean_", my_condition) 
+#   name<-paste0("mean_", my_condition)
 #   assign(name, mean(filter(filter(all_results, directory == my_condition), probability_maraud==0.15)$successful_mating))
-#   name<-paste0("sd_", my_condition) 
+#   name<-paste0("sd_", my_condition)
 #   assign(name, sd(filter(filter(all_results, directory == my_condition), probability_maraud==0.15)$successful_mating))
 # }
 
@@ -113,7 +113,7 @@ for (pmar in c(.004, .009, .018, .037, .057)) {
   assign(paste0("sds_", pmar), s)
 }
 
-plot(se, means_0.004, t='l', col="blue4",ylim=c(8.8, 9.3), 
+plot(se, means_0.004, t='l', col="blue4",ylim=c(8.9, 9.2), 
      main="Marauder mating success by propensity (dim=2250m, rep=4hrs)", 
      xlab = "Proportion of males who are marauders",
      ylab="Mean number of matings")
@@ -122,7 +122,7 @@ lines(se, means_0.018, col="blueviolet")
 lines(se, means_0.037, col="red1")
 lines(se, means_0.057, col="darkred")
 curve(0*x+9, lty=3, add=TRUE)
-legend(.7, 9.3, legend=c("All males (G & M)", "M: 0.004 (0.25/day)", "M: 0.009 (0.5/day)", "M: 0.018 (1/day)", "M: 0.037 (2/day)", "M: 0.057 (3/day)"),
+legend(.7, 9.2, legend=c("All males (G & M)", "M: 0.004 (0.25/day)", "M: 0.009 (0.5/day)", "M: 0.018 (1/day)", "M: 0.037 (2/day)", "M: 0.057 (3/day)"),
        col=c("black", "blue4", "cornflowerblue", "blueviolet", "red1", "darkred"), lty=c(3,1,1,1,1,1), cex=0.8)
 
 
