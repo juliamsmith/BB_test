@@ -23,27 +23,27 @@ for (my_condition in conditions){
 
 
 ```{r}
-##I've generated it once and it takes forever -- now instead I'm saving it as a dataframe
+#I've generated it once and it takes forever -- now instead I'm saving it as a dataframe
 saveRDS(all_results, file="all_results_varying_pmar_dim=2250_rep=4.Rda")
-##to get read in: whatever_name <- readRDS(file="all_results_varying_pmar_dim=2250_rep=4.Rda")
+#to get read in: whatever_name <- readRDS(file="all_results_varying_pmar_dim=2250_rep=4.Rda")
 
 # all_results <- tibble()
 # for (my_condition in conditions){
-#   # read and load each result
-#   my_dir_results <- paste0("../to_store/", my_condition, "/results/")
-#   my_results <- list.files(my_dir_results)
-#   if (length(my_results) > 0){
-#     # process a single file
-#     for (my_file in my_results) {
-#       # extract the random seed
-#       my_rnd_seed <- strsplit(substr(my_file, 5, 1000), "D")[[1]][1]
-#       my_rnd_seed <- as.numeric(my_rnd_seed)
-#       tmp <- read_csv(paste0(my_dir_results, my_file)) %>% add_column(rnd_seed = my_rnd_seed, directory = my_condition)
-#       tmp <- tmp %>% select(probability_maraud, successful_mating,
-#                             foraging_hrs, staying_hrs, repairing_hrs, marauding_events, marauding_hrs, marauding_events, traveling_hrs, rnd_seed, directory)
-#       all_results <- rbind(all_results, tmp)
-#     }
-#   }
+#    # read and load each result
+#  my_dir_results <- paste0("../to_store/", my_condition, "/results/")
+#  my_results <- list.files(my_dir_results)
+#  if (length(my_results) > 0){
+#    # process a single file
+#    for (my_file in my_results) {
+#      # extract the random seed
+#      my_rnd_seed <- strsplit(substr(my_file, 5, 1000), "D")[[1]][1]
+#      my_rnd_seed <- as.numeric(my_rnd_seed)
+#      tmp <- read_csv(paste0(my_dir_results, my_file)) %>% add_column(rnd_seed = my_rnd_seed, directory = my_condition)
+#      tmp <- tmp %>% select(probability_maraud, successful_mating,
+#                            foraging_hrs, staying_hrs, repairing_hrs, marauding_events, marauding_hrs, marauding_events, traveling_hrs, rnd_seed, directory)
+#      all_results <- rbind(all_results, tmp)
+#    }
+#  }
 # }
 # 
 # all_results <- all_results %>% inner_join(lookup_table)
@@ -87,7 +87,7 @@ for (my_condition in conditions){
 ```{r}
 hist(all_results$successful_mating,  main="Bowerbird Mating Distribution", 
      xlab="Sucessful Matings",  
-     col="#409872")
+     col="light blue")
 
 ```
 
