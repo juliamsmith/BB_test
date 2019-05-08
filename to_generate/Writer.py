@@ -7,14 +7,13 @@ import matplotlib.pyplot as plt
 from scipy.stats import truncnorm
 import os
 
-def in_write(dim_val, m_prop_val, RB_time_val, num_sims, max_m_val):
+def in_write(dist_val, RB_time_val, num_sims, max_m_val, males, n_mar):
     #timeline = SortedDict()
     t_max = 12 * 30 # time when simulation ends
 
-    # MALES
-    males = 100 # number of male birds
+   
 
-    # FEMALES
+     # FEMALES
     F_per_M = 9 #The number of sexualy mature females per sexually mature male
     females = males * F_per_M # number of female birds
     #BELOW: FV_std * truncnorm.rvs(FV_norm_range[0], FV_norm_range[1]) + FV_mean
@@ -25,7 +24,7 @@ def in_write(dim_val, m_prop_val, RB_time_val, num_sims, max_m_val):
     female_visit_param = [FV_std, FV_mean, FV_norm_range[0], FV_norm_range[1]]  
 
     # POSITIONS AND TRAVEL TIME
-    x_dim, y_dim = dim_val, dim_val # dimensions of environment
+    dist = dist_val # distance between males
     bird_speed = 12 * 3600 # m/hr (12 m/s)
     # now choose lambda_dist, controlling the probability of traveling to a neighbor
     # the probability of choosing a neighbor at distance x is proportional to exp(-\lambda x)
@@ -58,21 +57,18 @@ def in_write(dim_val, m_prop_val, RB_time_val, num_sims, max_m_val):
     C_or_D='D'
 
     max_maraud=max_m_val
-    prop_maraud=round(m_prop_val,3) #only useful in discrete case #using round as a precaution because we got weird things last time
-    strategies_string = 'numpy.random.choice(2, {}, p=[1-{}, {}])*{}'.format(males, prop_maraud, prop_maraud, max_maraud) #DISCRETE: 0, max_maraud
+    #prop_maraud=round(m_prop_val,3) #only useful in discrete case #using round as a precaution because we got weird things last time
+    mar_ids = 'np.random.permutation(males)[0:n_mar]'
+    
+    #DISCRETE: 0, max_maraud
     #'numpy.random.random(males)*{}'.format(max_maraud) #UNIFORM DISTRIBUTION of strategies capped at max_maraud
-
-
     name_vec=['t_max', 
               'males', 
               'F_per_M', 
               'females', 
               'female_visit_param',
-              'x_dim', 
-              'y_dim', 
+              'dist', 
               'bird_speed', 
-              'improb_dist',
-              'improb_sds', 
               'FG_tau_mean', 
               'FG_tau_std',
               'FG_tau_range', 
@@ -84,18 +80,19 @@ def in_write(dim_val, m_prop_val, RB_time_val, num_sims, max_m_val):
               'RBSB_tau_std', 
               'RBSB_tau_norm_range',
               'damage_to_bower',
-              'time_spent_marauding'
+              'time_spent_marauding',
+              'max_maraud',
+              'n_mar',
+              'improb_dist',
+              'improb_sds'
              ]
     value_vec=[t_max, 
               males, 
               F_per_M, 
               females, 
-              female_visit_param,
-              x_dim, 
-              y_dim, 
+              female_visit_param, 
+              dist,
               bird_speed, 
-              improb_dist,
-              improb_sds,
               FG_tau_mean, 
               FG_tau_std,
               FG_tau_range, 
@@ -107,11 +104,15 @@ def in_write(dim_val, m_prop_val, RB_time_val, num_sims, max_m_val):
               RBSB_tau_std, 
               RBSB_tau_norm_range,
               damage_to_bower,
-              time_spent_marauding
+              time_spent_marauding,
+              max_maraud,
+              n_mar,
+              improb_dist,
+              improb_sds
              ]
     in_titles=[]
     out_titles=[]
-    conditions_name='{}_strat={}_pmar={}_dim={}_repair_{}'.format(C_or_D,max_maraud,prop_maraud,x_dim,damage_to_bower)
+    conditions_name='{}_pmar={}_dist={}_repair_{}_males={}_nmar={}'.format(C_or_D,max_maraud,round(dist_val,3),damage_to_bower,males,n_mar)
     os.makedirs("../to_store/{}".format(conditions_name))
     os.makedirs("../to_store/{}/parameters".format(conditions_name))
     os.makedirs("../to_store/{}/results".format(conditions_name))
@@ -122,8 +123,8 @@ def in_write(dim_val, m_prop_val, RB_time_val, num_sims, max_m_val):
         out_title='res_{}{}'.format(correcter,j) + conditions_name + '.csv'
         out_titles.append(out_title)
         my_string=('random_seed = ' + str(j) + '\n'+
-                   'out_title = ' +  "'" + out_title + "'" + '\n' + 
-                   'strategies_string =' + "'" + strategies_string + "'" + '\n')
+                   'out_title = ' +  "'" + out_title + "'" + '\n'+
+                   'mar_ids =' + "'" + mar_ids + "'" + '\n')
         for i in range(len(name_vec)):
             tack_on= str(name_vec[i]) + ' = ' + str(value_vec[i]) + '\n'
             my_string+=tack_on
@@ -132,8 +133,3 @@ def in_write(dim_val, m_prop_val, RB_time_val, num_sims, max_m_val):
         with open("../to_store/{}/parameters/{}".format(conditions_name, in_title),"w") as f:
             f.write(my_string)
     return [in_titles, out_titles, conditions_name]
-
-
-#for j in range(num_sims):
-#    os.remove("in_{}_{}_strat={}_dim={}_repair={}".format(j,C_or_D,max_maraud,x_dim,damage_to_bower))
-    
