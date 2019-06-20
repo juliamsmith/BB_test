@@ -1,0 +1,211 @@
+---
+title: "updated_read_data_multi"
+output: html_document
+---
+
+
+first, we list the directories in `to_store`
+
+
+
+```{r}
+# library(tidyverse)
+# conditions <- list.files("../to_store/")
+# lookup_table <- data.frame()
+# for (my_condition in conditions){
+#   my_condition <- str_remove(my_condition, ".csv") #remove .csv from the file name in order to extract parameters without NA errors
+#   my_condition <- str_remove(my_condition, "results")
+#   # split the string
+#   my_split <- strsplit(my_condition, "_|\\=")[[1]]
+#   #print(my_split)
+#   # extract parameters
+#   num_males <- as.numeric(my_split[9])
+#   num_mar <- as.numeric(my_split[11])
+#   lookup_table <- rbind(lookup_table, data.frame(directory = my_condition, 
+#                                                  num_males = num_males, 
+#                                                  num_mar = num_mar))
+#}
+```
+
+
+
+
+```{r}
+#ESPECIALLY NOPE -- SOMETHING HERE DIDN'T WORK FOR ME 
+# conditions <- list.files("~/Desktop/results") #set to your working directory
+# all_results <- tibble()
+# for (my_condition in conditions[1]){
+#   tmp <- read_csv(paste0("../to_store/", my_condition))
+#   #tmp <- read_csv(paste0("results",my_condition,'.csv'))
+#   tmp <- tmp %>% select(probability_maraud, successful_mating,
+#                            foraging_hrs, staying_hrs, repairing_hrs,
+#                         marauding_events, marauding_hrs, marauding_events,
+#                         traveling_hrs, rnd_seed, directory)
+#   all_results <- rbind(all_results, tmp)
+# }
+# all_results <- all_results %>% inner_join(lookup_table)
+# all_results <- as.data.frame(all_results)
+# head(all_results)
+
+
+#THIS WORKED FOR ME BUT NOW ISN'T NECESSARY BC I DELETED THE STUFF IN to_store
+# all_results <- tibble()
+# for (my_condition in conditions){ 
+#    # read and load each result
+#  my_dir_results <- paste0("../to_store/", my_condition, "/results/")
+#  my_results <- list.files(my_dir_results)
+#  if (length(my_results) > 0){
+#    # process a single file
+#    for (my_file in my_results) {
+#      # extract the random seed
+#      my_rnd_seed <- strsplit(substr(my_file, 5, 1000), "D")[[1]][1]
+#      my_rnd_seed <- as.numeric(my_rnd_seed)
+#      tmp <- read_csv(paste0(my_dir_results, my_file)) %>% add_column(rnd_seed = my_rnd_seed, directory = my_condition)
+#      tmp <- tmp %>% select(probability_maraud, successful_mating, x_pos, y_pos,
+#                            foraging_hrs, staying_hrs, repairing_hrs, marauding_events, marauding_hrs, traveling_hrs, rnd_seed, directory)
+#      all_results <- rbind(all_results, tmp)
+#    }
+#  }
+# }
+# 
+# all_results <- all_results %>% inner_join(lookup_table)
+
+```
+
+```{r}
+#saves a csv for each condition (for example, with 100 male and 1,000 simulations, this results in 100,000 rows) -- ALREADY USED
+# for (my_condition in conditions){
+#   name<-paste0("results", my_condition) 
+#   assign(name,filter(all_results, directory == my_condition))
+#   write_csv(filter(all_results, directory == my_condition), path = paste0("results",my_condition,'.csv'))
+# }
+```
+
+```{r}
+library(tidyverse)
+
+conditions <- list.files(pattern = "\\.csv$")
+all_results <- tibble()
+for (my_condition in conditions){
+  tmp <- read_csv(my_condition)
+  all_results <- rbind(all_results, tmp)
+}
+
+conditions <-str_replace(str_replace(conditions, "results", ""), ".csv", "")
+
+
+```
+
+```{r}
+strat=.054
+for(my_condition in conditions[35]){ #conditions[1] is 1/12 in 100; also try 35 (1/4 in 100) and 50 (1/12 in 1000)
+  res <- filter(all_results,directory==my_condition)
+  dist_from_mar <- c()
+  success <- c()
+  repairing_hrs <- c()
+  for(rs in 0:999){
+    res_sim <- filter(res, rnd_seed==rs)
+    marauders <- filter(res_sim, probability_maraud == strat)
+    mar_xs <- marauders$x_pos
+    mar_ys <- marauders$y_pos
+    guarders <- filter(res_sim, probability_maraud == 0.0)
+    dist_sim <- rep(NA, nrow(guarders))
+    success_sim <- rep(NA, nrow(guarders))
+    repair_sim <- rep(NA, nrow(guarders))
+    for(i in 1:nrow(guarders)){
+      g_x <- guarders$x_pos[i]
+      g_y <- guarders$y_pos[i]
+      closest_yet <- Inf
+      for(j in 1:nrow(marauders)){
+        m_x <- mar_xs[j]
+        m_y <- mar_ys[j]
+        dist <- sqrt((m_x-g_x)^2 + (m_y-g_y)^2)
+        if(dist<closest_yet) {
+          closest_yet=dist
+        }
+      }
+      dist_sim[i] <- closest_yet
+      success_sim[i] <- guarders$successful_mating[i]
+      repair_sim[i] <- guarders$repairing_hrs[i]
+    }
+    dist_from_mar <- c(dist_from_mar, dist_sim)
+    success <- c(success, success_sim)
+    repairing_hrs <- c(repairing_hrs, repair_sim)
+  }
+}
+linearMod1 <- lm(success ~ dist_from_mar)
+summary(linearMod1)
+plot(dist_from_mar, success)
+
+linearMod2 <- lm(repairing_hrs ~ dist_from_mar)
+summary(linearMod2)
+plot(dist_from_mar, repairing_hrs)
+
+linearMod3 <- lm(success ~ repairing_hrs)
+summary(linearMod3)
+plot(repairing_hrs, success)
+dists <- sort(unique(dist_from_mar))
+for(d in dists){
+  print("distance from marauder")
+  print(d)
+  print("avg repair time")
+  print(mean(repairing_hrs[dist_from_mar==d]))
+  print("avg mating success")
+  print(mean(success[dist_from_mar==d]))
+}
+
+
+```
+
+
+
+```{r}
+# hist(all_results$successful_mating,  main="Bowerbird Mating Distribution", 
+#      xlab="Sucessful Matings",  
+#      col="light blue")
+num_males <- c(4,6,8,12,24)
+# strats <- c(0.054)
+# dists <- c(117.291)
+# times <- c(6)
+# slen<-length(strats)
+# dlen<-length(dists)
+# tlen<-length(times)
+# twelvemat <- matrix(NA, nrow=slen, ncol=length(dists))
+# sixmat <- matrix(NA, nrow=length(strats), ncol=length(dists))
+# meansarr<-array(rep(NA, slen*tlen*dlen), dim=c(slen,tlen,dlen))
+strat=.054
+
+dims <- c(100, 1000) #missing dims in doc so we have to get it from directory... WILL DEAL LATER
+
+for(i in 1:length(num_males)){
+  n_males<-num_males[i]
+  for(j in 1:(n_males-1)){
+    n_mar=j
+    res <- filter(all_results,num_males==n_males & num_mar==n_mar)
+    marauders <- filter(res, probability_maraud == strat)
+    guarders <- filter(res, probability_maraud == 0.0)
+    print(t.test(marauders$successful_mating, guarders$successful_mating))
+    print(n_males)
+    print(n_mar)
+    print(paste("variance of marauder matings", var(marauders$successful_mating)))
+    print(paste("variance of guarder matings", var(guarders$successful_mating)))
+  }
+}
+
+```
+
+```{r}
+
+#a simpler way
+strat=.054
+for(cond in conditions){
+  res <- filter(all_results,directory==cond)
+  marauders <- filter(res, probability_maraud == strat)
+  guarders <- filter(res, probability_maraud == 0.0)
+  print(t.test(marauders$successful_mating, guarders$successful_mating))
+  print(cond)
+  #print(paste("variance of marauder matings", var(marauders$successful_mating)))
+  #print(paste("variance of guarder matings", var(guarders$successful_mating)))
+}
+```
+
