@@ -98,11 +98,16 @@ conditions <-str_replace(str_replace(conditions, "results", ""), ".csv", "")
 
 ```{r}
 strat=.054
-for(my_condition in conditions[35]){ #conditions[1] is 1/12 in 100; also try 35 (1/4 in 100) and 50 (1/12 in 1000)
+for(my_condition in conditions[50]){ #conditions[1] is 1/12 in 100; also try 35 (1/4 in 100) and 50 (1/12 in 1000)
   res <- filter(all_results,directory==my_condition)
+  max_x <- max(res$x_pos)
+  min_x <- min(res$x_pos)
+  max_y <- max(res$y_pos)
+  min_y <- min(res$y_pos)
   dist_from_mar <- c()
   success <- c()
   repairing_hrs <- c()
+  c_e_or_m <- c()
   for(rs in 0:999){
     res_sim <- filter(res, rnd_seed==rs)
     marauders <- filter(res_sim, probability_maraud == strat)
@@ -112,9 +117,17 @@ for(my_condition in conditions[35]){ #conditions[1] is 1/12 in 100; also try 35 
     dist_sim <- rep(NA, nrow(guarders))
     success_sim <- rep(NA, nrow(guarders))
     repair_sim <- rep(NA, nrow(guarders))
+    cem_sim <- rep(NA, nrow(guarders))
     for(i in 1:nrow(guarders)){
       g_x <- guarders$x_pos[i]
       g_y <- guarders$y_pos[i]
+      if((g_x==max_x || g_x==min_x) && (g_y==max_y || g_y==min_y)){
+        cem_sim[i]="c"
+      } else if (g_x!=max_x && g_x!=min_x && g_y!=max_y && g_y!=min_y) {
+        cem_sim[i]="m"        
+      } else {
+        cem_sim[i]="e"
+      }
       closest_yet <- Inf
       for(j in 1:nrow(marauders)){
         m_x <- mar_xs[j]
@@ -131,8 +144,12 @@ for(my_condition in conditions[35]){ #conditions[1] is 1/12 in 100; also try 35 
     dist_from_mar <- c(dist_from_mar, dist_sim)
     success <- c(success, success_sim)
     repairing_hrs <- c(repairing_hrs, repair_sim)
+    c_e_or_m <- c(c_e_or_m, cem_sim)
   }
 }
+```
+
+```{r}
 linearMod1 <- lm(success ~ dist_from_mar)
 summary(linearMod1)
 plot(dist_from_mar, success)
@@ -157,6 +174,62 @@ for(d in dists){
 
 ```
 
+
+```{r}
+
+print(mean(success[c_e_or_m=="c"]))
+print(mean(success[c_e_or_m=="e"]))
+print(mean(success[c_e_or_m=="m"]))
+#EDGE EFFECTS!
+
+print(var(success[c_e_or_m=="c"]))
+print(var(success[c_e_or_m=="e"]))
+print(var(success[c_e_or_m=="m"]))
+
+
+lm(success ~ c_e_or_m)
+linearMod4 <- lm(success ~ c_e_or_m)
+anova(linearMod4)
+
+#plot(c_e_or_m, success)
+cem <- sort(unique(c_e_or_m))
+for(categ in cem){
+  print("corner, edge, or middle")
+  print(categ)
+  print("dist from mar")
+  print(mean(dist_from_mar[c_e_or_m==categ]))
+  print("avg repair time")
+  print(mean(repairing_hrs[c_e_or_m==categ]))
+  print("avg mating success")
+  print(mean(success[c_e_or_m==categ]))
+}
+
+```
+
+```{r}
+
+for(categ in cem){
+  print("CORNER, EDGE, OR MIDDLE")
+  print(categ)
+  success_c <- success[c_e_or_m==categ]
+  dist_from_mar_c <- dist_from_mar[c_e_or_m==categ]
+  repairing_hrs_c <- repairing_hrs[c_e_or_m==categ]
+  linearMod1 <- lm(success_c ~ dist_from_mar_c)
+  print(summary(linearMod1))
+  #plot(dist_from_mar, success_c)
+  
+  linearMod2 <- lm(repairing_hrs_c ~ dist_from_mar_c)
+  print(summary(linearMod2))
+  #plot(dist_from_mar, repairing_hrs)
+  
+  linearMod3 <- lm(success_c ~ repairing_hrs_c)
+  print(summary(linearMod3))
+  #plot(repairing_hrs, success_c)
+}
+
+
+
+```
 
 
 ```{r}
