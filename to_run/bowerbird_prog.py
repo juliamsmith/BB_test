@@ -45,15 +45,36 @@ def generate_positions(males, dist):
     return [rs,cs]
 
 
-def compute_distances_travel_times(males, positions, bird_speed):
+# def compute_distances_travel_times(males, positions, bird_speed):
+#     male_dist = np.zeros((males, males))
+#     travel_times = np.zeros((males, males))
+#     for i in range(males):
+#         for j in range(i + 1, males):
+#             dist = math.sqrt((positions[0][j] - positions[0][i]) ** 2 + (positions[1][j] - positions[1][i]) ** 2)
+#             travel = dist / bird_speed
+#             male_dist[j][i] = dist
+#             male_dist[i][j] = dist
+#             travel_times[j][i] = travel
+#             travel_times[i][j] = travel
+#     return (male_dist, travel_times)
+
+def compute_dist_tt_torus(males, positions, bird_speed, dist): #dist IS NEW!!!
+    max_rs = max(positions[0])
+    max_cs = max(positions[1])
+    r_bound = int(math.ceil(max_rs/200))*100
+    c_bound = int(math.ceil(max_cs/200))*100
     male_dist = np.zeros((males, males))
     travel_times = np.zeros((males, males))
     for i in range(males):
         for j in range(i + 1, males):
-            dist = math.sqrt((positions[0][j] - positions[0][i]) ** 2 + (positions[1][j] - positions[1][i]) ** 2)
-            travel = dist / bird_speed
-            male_dist[j][i] = dist
-            male_dist[i][j] = dist
+            r_diff = abs(positions[0][j] - positions[0][i])
+            c_diff = abs(positions[1][j] - positions[1][i])
+            r_diff = min(r_diff, dist+max_rs-r_diff)
+            c_diff = min(c_diff, dist+max_cs-c_diff)
+            d = math.sqrt(r_diff**2 + c_diff**2)
+            travel = d / bird_speed
+            male_dist[j][i] = d
+            male_dist[i][j] = d
             travel_times[j][i] = travel
             travel_times[i][j] = travel
     return (male_dist, travel_times)
@@ -282,7 +303,9 @@ def initialize_male(bird_id, bird_strategy, bird_xy, bird_preferences, bird_trav
             "staying_time_data": np.array([0.0, 0.0, 0.0]),
             "repairing_time_data": np.array([0.0, 0.0, 0.0]),
             "marauding_time_data": np.array([0.0, 0.0, 0.0]),
-            "traveling_time_data": np.array([0.0, 0.0, 0.0])
+            "traveling_time_data": np.array([0.0, 0.0, 0.0]),
+            "mar_attempts": np.empty((0,3)),
+            "mate_attempts": np.empty((0,3))
             }
     return(bird)
 
@@ -306,24 +329,38 @@ def read_ticket(tic):
     elif tic["action"] == "travel to maraud":
         # check whether the target is at home
         go_maraud = True
+        state_str = ""
         if birds[tic["target"]]["current_state"] in ("staying at bower", "repairing bower"):
             go_maraud = False
+            state_str = "present"
         if birds[tic["target"]]["bower_state"] < 0.0:
             go_maraud = False
+            state_str = state_str + "destroyed"
         if go_maraud: # maraud
             action_maraud(tic["owner"], tic["target"], tic["end_time"])
+            state_str="marauded"
         else: # go back
             action_travel_from_maraud(tic["owner"], tic["target"], tic["end_time"])
+        data_pt = np.array([[tic["owner"], tic["end_time"], state_str]])
+        birds[tic["target"]]["mar_attempts"] = np.concatenate((birds[tic["target"]]["mar_attempts"], data_pt))
     elif tic["action"] == "marauding":
         # travel back
         action_travel_from_maraud(tic["owner"], tic["target"], tic["end_time"])
     elif tic["action"] == "mating attempt":
+        state_str = ""
         if birds[tic["target"]]["current_state"] == "staying at bower": #if male is at bower and it is intact
             birds[tic["target"]]["successful_mating"] += 1 #successfully mate and stop generating tickets
+            state_str = "mated"
         else:  
+            if birds[tic["target"]]["current_state"] not in ("staying at bower", "repairing bower"):
+                state_str = "absent"
+            if birds[tic["target"]]["bower_state"] < 0.0:
+                state_str = state_str + "destroyed"
             female_birds[int(tic["owner"][1:])]["already_visited"].append(tic["target"]) #update the female's already_visited list
             if tic['end_time'] < t_max:
                 action_mating_attempt(tic["owner"], tic["end_time"]) #generate a new ticket
+        data_pt = np.array([[tic["owner"], tic["end_time"], state_str]])
+        birds[tic["target"]]["mate_attempts"] = np.concatenate((birds[tic["target"]]["mate_attempts"], data_pt))
     else:
         1 / 0 # something went horribly wrong
     
@@ -340,7 +377,7 @@ def runsimulation(t_max, males, F_per_M, females,female_visit_param, dist, bird_
 
     # initialize positions, travel times and preferences
     positions = generate_positions(males, dist)
-    distances, travel_times = compute_distances_travel_times(males, positions, bird_speed)
+    distances, travel_times = compute_dist_tt_torus(males, positions, bird_speed, dist)#compute_distances_travel_times(males, positions, bird_speed)
     visit_preferences = compute_visit_preferences(males, distances, improb_dist, improb_sds)
     for i in range(males):
         birds.append(initialize_male(i, 
