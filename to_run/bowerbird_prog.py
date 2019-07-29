@@ -59,18 +59,16 @@ def generate_positions(males, dist):
 #     return (male_dist, travel_times)
 
 def compute_dist_tt_torus(males, positions, bird_speed, dist): #dist IS NEW!!!
-    max_rs = max(positions[0])
-    max_cs = max(positions[1])
-    r_bound = int(math.ceil(max_rs/200))*100
-    c_bound = int(math.ceil(max_cs/200))*100
+    circ_rs = max(positions[0]) + dist
+    circ_cs = max(positions[1]) + dist
     male_dist = np.zeros((males, males))
     travel_times = np.zeros((males, males))
     for i in range(males):
         for j in range(i + 1, males):
             r_diff = abs(positions[0][j] - positions[0][i])
             c_diff = abs(positions[1][j] - positions[1][i])
-            r_diff = min(r_diff, dist+max_rs-r_diff)
-            c_diff = min(c_diff, dist+max_cs-c_diff)
+            r_diff = min(r_diff, circ_rs-r_diff)
+            c_diff = min(c_diff, circ_cs-c_diff)
             d = math.sqrt(r_diff**2 + c_diff**2)
             travel = d / bird_speed
             male_dist[j][i] = d
