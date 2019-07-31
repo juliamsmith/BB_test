@@ -37,5 +37,5 @@ for (my_condition in conditions){
 all_results <- all_results %>% inner_join(lookup_table)
 
 for (my_condition in conditions){
-  write_csv(filter(all_results, directory == my_condition), path = paste0("results_torus",my_condition,'.csv'))
+  write_csv(filter(all_results, directory == my_condition), path = paste0("results_aspatial",my_condition,'.csv'))
 }
