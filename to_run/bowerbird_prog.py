@@ -45,18 +45,18 @@ def generate_positions(males, dist):
     return [rs,cs]
 
 
-def compute_distances_travel_times(males, positions, bird_speed):
-    male_dist = np.zeros((males, males))
-    travel_times = np.zeros((males, males))
-    for i in range(males):
-        for j in range(i + 1, males):
-            dist = math.sqrt((positions[0][j] - positions[0][i]) ** 2 + (positions[1][j] - positions[1][i]) ** 2)
-            travel = dist / bird_speed
-            male_dist[j][i] = dist
-            male_dist[i][j] = dist
-            travel_times[j][i] = travel
-            travel_times[i][j] = travel
-    return (male_dist, travel_times)
+# def compute_distances_travel_times(males, positions, bird_speed):
+#     male_dist = np.zeros((males, males))
+#     travel_times = np.zeros((males, males))
+#     for i in range(males):
+#         for j in range(i + 1, males):
+#             dist = math.sqrt((positions[0][j] - positions[0][i]) ** 2 + (positions[1][j] - positions[1][i]) ** 2)
+#             travel = dist / bird_speed
+#             male_dist[j][i] = dist
+#             male_dist[i][j] = dist
+#             travel_times[j][i] = travel
+#             travel_times[i][j] = travel
+#     return (male_dist, travel_times)
 
 # def compute_dist_tt_torus(males, positions, bird_speed, dist): #dist IS NEW!!!
 #     circ_rs = max(positions[0]) + dist
@@ -76,6 +76,29 @@ def compute_distances_travel_times(males, positions, bird_speed):
 #             travel_times[j][i] = travel
 #             travel_times[i][j] = travel
 #     return (male_dist, travel_times)
+
+def compute_distances_travel_times_scramble(males, positions, bird_speed):
+    male_dist = np.zeros((males, males))
+    travel_times = np.zeros((males, males))
+    dists=[]
+    travels=[]
+    for i in range(males):
+        for j in range(i + 1, males):
+            dist = math.sqrt((positions[0][j] - positions[0][i]) ** 2 + (positions[1][j] - positions[1][i]) ** 2)
+            dists = dists + [dist]
+            travel = dist / bird_speed
+            travels = travels + [travel]
+    inds=np.arange(len(dists))
+    random.shuffle(inds)
+    count=0
+    for i in range(males):
+        for j in range(i + 1, males):
+            male_dist[j][i] = dists[inds[count]]
+            male_dist[i][j] = dists[inds[count]]
+            travel_times[j][i] = travels[inds[count]]
+            travel_times[i][j] = travels[inds[count]]
+            count = count + 1
+    return (male_dist, travel_times)
 
 def compute_visit_preferences(males, distances, improb_dist, improb_sds):
     # compute exponential of each coefficient
@@ -376,7 +399,7 @@ def runsimulation(t_max, males, F_per_M, females,female_visit_param, dist, bird_
     # initialize positions, travel times and preferences
     positions = generate_positions(males, dist)
     #distances, travel_times = compute_dist_tt_torus(males, positions, bird_speed, dist)
-    distances, travel_times = compute_distances_travel_times(males, positions, bird_speed)
+    distances, travel_times = compute_distances_travel_times_scramble(males, positions, bird_speed)
     visit_preferences = compute_visit_preferences(males, distances, improb_dist, improb_sds)
     for i in range(males):
         birds.append(initialize_male(i, 
