@@ -1,5 +1,4 @@
 # BB_test
-Bowerbird Model:
 
 This is a model of bowerbird male mating behavior known as maruading, whereby males destroy other males' mating structures known as bowers. By destroying their neighbor's bowers, they supposedly enhance their own mating success, and we wanted to identify under what conditions this behavior can be understood as an evolutionary stable strategey (ESS).
 
