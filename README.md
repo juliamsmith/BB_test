@@ -7,7 +7,7 @@ This is a model of bowerbird male mating behavior known as maruading, whereby ma
 Therefore, we created an agent based model, exploring the following conditions in a factorial manner:
 
  * **number of males** 2, 4, 6, 8, 12, and 24 males
- * **spatial configuration** Aspatial (all males equidistant), spatial, scrambled
+ * **spatial configuration** Aspatial (all males equidistant), uniform, scrambled
  * **number of marauders:** 0 to n-1 males
 
 
@@ -22,5 +22,5 @@ Here is a diagram of transitions between the actions. Probability distributions 
 
 <img width="606" alt="Screen Shot 2021-10-07 at 8 44 38 AM" src="https://user-images.githubusercontent.com/40371336/136418799-79454fe8-b7ad-4993-9881-410f9d2269fb.png">
 
-The two figures above provide a visual depiction of our model. Actual code was done in Python can be found in the repository. We then ran seeded simulations with 1,000 males, submitting batch files to Midway2 computing cluster and creating CSV files we could then analyze in R. In R, we performed t-tests and performed a regression analysis. Code for the model in Python, the CSV files, and R analysis files can all be found in this repository. 
+The two figures above provide a visual depiction of our model. Actual code was done in Python can be found in the repository. We then ran seeded simulations with 1,000 males, submitting batch files to Midway2 computing cluster and creating CSV files we could then analyze in R. In R, we performed t-tests and performed a regression analysis. Code for the model in Python and R analysis files can all be found in this repository. Uploading the CSV files for all conditions is currently in progress.
 
