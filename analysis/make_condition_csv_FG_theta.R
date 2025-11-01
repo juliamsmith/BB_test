@@ -1,8 +1,10 @@
 library(tidyverse)
 
 # Get all FG_theta subdirectories
-fg_vary_path <- "../to_store/FG_vary/"
-fg_theta_dirs <- list.files(fg_vary_path, full.names = FALSE)
+fg_vary_path <- "/mmfs1/gscratch/biology/jmsmith/BB_test/to_store/FG_vary/" #"../to_store/FG_vary/"
+
+fg_theta_dirs <- list.dirs(path = fg_vary_path, full.names = FALSE, recursive = FALSE)
+
 
 lookup_table <- data.frame()
 all_results <- tibble()
@@ -50,16 +52,17 @@ for (fg_theta_dir in fg_theta_dirs) {
         my_rnd_seed <- strsplit(substr(my_file, 5, 1000), "D")[[1]][1]
         my_rnd_seed <- as.numeric(my_rnd_seed)
         
-        tmp <- read_csv(paste0(my_dir_results, my_file)) %>% 
-          add_column(rnd_seed = my_rnd_seed, 
+        tmp <- read_csv(paste0(my_dir_results, my_file), show_col_types = FALSE) %>%
+          add_column(rnd_seed = my_rnd_seed,
                      directory = my_condition,
                      fg_theta_dir = fg_theta_dir)
         
         tmp <- tmp %>% select(probability_maraud, successful_mating, x_pos, y_pos,
-                              foraging_hrs, staying_hrs, repairing_hrs, 
-                              marauding_events, marauding_hrs, traveling_hrs, 
-                              rnd_seed, directory, fg_theta_dir,
-                              mar_attempts, mate_attempts)
+                      foraging_hrs, staying_hrs, repairing_hrs,
+                      marauding_events, marauding_hrs, traveling_hrs,
+                      rnd_seed, directory, fg_theta_dir, mar_attempts, mate_attempts)
+
+
         
         all_results <- rbind(all_results, tmp)
       }
@@ -67,13 +70,16 @@ for (fg_theta_dir in fg_theta_dirs) {
   }
 }
 
+
 # Join with lookup table to add FG_theta and other parameters
 all_results <- all_results %>% inner_join(lookup_table, by = c("directory", "fg_theta_dir"))
 
 
-for (my_condition in unique(all_results$directory)) {
-  for (fg_theta_dir in unique(filter(all_results, directory == my_condition)$fg_theta_dir)) {
-    write_csv(filter(all_results, directory == my_condition, fg_theta_dir == fg_theta_dir), 
-              path = paste0("results_", fg_theta_dir, "_", my_condition, ".csv"))
+# Write one CSV per condition (like the original)
+for (my_theta_dir in unique(all_results$fg_theta_dir)) {
+  fg_data <- filter(all_results, fg_theta_dir == my_theta_dir)
+  for (my_condition in unique(fg_data$directory)) {
+    write_csv(filter(fg_data, directory == my_condition), 
+              path = paste0("results_", my_theta_dir, "_", my_condition, ".csv"))
   }
 }
