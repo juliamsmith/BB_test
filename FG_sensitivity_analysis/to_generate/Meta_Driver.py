@@ -5,7 +5,7 @@ import numpy as np
 #from Batch_func import BnS
 
 
-def writebatchscript(num_sims, in_titles, out_titles, conditions_name):
+def writebatchscript(num_sims, in_titles, out_titles, conditions_name, fg_theta=None):
     script=""
     for i in range(num_sims): #assume you call from inside to_run
         script+=("python3 bowerbird_prog.py ../to_store/{}/parameters/{}\n".format(conditions_name,in_titles[i]) + 
@@ -14,7 +14,7 @@ def writebatchscript(num_sims, in_titles, out_titles, conditions_name):
     to_submit = ("#!/bin/bash" +
                  "\n#SBATCH -J " + conditions_name + 
                  "\n#SBATCH --time=07:00:00" +
-                 "\n#SBATCH -p broadwl" + 
+                 "\n#SBATCH -p compute" + 
                  "\n#SBATCH --nodes=1" +
                  "\n#SBATCH --ntasks-per-node=1" + 
                  "\n\nmodule load Anaconda3/5.1.0\n" + 

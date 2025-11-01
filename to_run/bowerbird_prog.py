@@ -132,7 +132,10 @@ def action_forage(bird_id, current_time):
     global birds
     my_bird=birds[bird_id]
     # generate the time it takes to forage
-    time_spent_foraging = np.random.gamma(FG_k, FG_theta)/FG_divisor
+    if FG_theta == -99:
+        time_spent_foraging = 0
+    else:
+        time_spent_foraging = np.random.gamma(FG_k, FG_theta)/FG_divisor
     time_action_ends = current_time + time_spent_foraging
     # generate the ticket
     generate_ticket(start_time = current_time,

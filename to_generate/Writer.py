@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 from scipy.stats import truncnorm
 import os
 
-def in_write(dist_val, RB_time_val, num_sims, max_m_val, males, n_mar):
+def in_write(dist_val, RB_time_val, num_sims, max_m_val, males, n_mar, fg_theta=None):
     #timeline = SortedDict()
     t_max = 12 * 30 # time when simulation ends
 
@@ -42,7 +42,11 @@ def in_write(dist_val, RB_time_val, num_sims, max_m_val, males, n_mar):
     FG_tau_norm_range = [(FG_tau_range[0] - FG_tau_mean) / FG_tau_std, (FG_tau_range[1] - FG_tau_mean) / FG_tau_std] #normalized
     # Duration of forage
     FG_k=1.5 #the shape of the gamma distribution rv used to generate FG taus
-    FG_theta=5 #the scale of the gamma distribution rv used to generate FG taus
+    if fg_theta is not None:
+        FG_theta = fg_theta
+    else:
+        FG_theta = 5  # default value
+#FG_theta=5 #the scale of the gamma distribution rv used to generate FG taus
     FG_divisor=60 #helps scale gamma distritbution
     # Duration of repair bower / stay at bower
     RBSB_tau_mean, RBSB_tau_std = .1583, .09755 #mean and sd of truncated normal distribution rv to find duration of repair bower / stay at bower
@@ -112,15 +116,23 @@ def in_write(dist_val, RB_time_val, num_sims, max_m_val, males, n_mar):
              ]
     in_titles=[]
     out_titles=[]
-    conditions_name='{}_pmar={}_dist={}_repair_{}_males={}_nmar={}'.format(C_or_D,max_maraud,round(dist_val,3),damage_to_bower,males,n_mar)
-    os.makedirs("../to_store/{}".format(conditions_name))
-    os.makedirs("../to_store/{}/parameters".format(conditions_name))
-    os.makedirs("../to_store/{}/results".format(conditions_name))
+    base_conditions = '{}_pmar={}_dist={}_repair_{}_males={}_nmar={}'.format(C_or_D, max_maraud, round(dist_val,3), damage_to_bower, males, n_mar)
+    if fg_theta is not None:
+        if fg_theta == -99:
+            fg_theta_str = 'zero_feeding'
+        else:
+            fg_theta_str = str(fg_theta)
+        conditions_name = 'FG_vary/FG_theta_{}/{}'.format(fg_theta_str, base_conditions)
+    else:
+        conditions_name = base_conditions
+    os.makedirs("../to_store/{}".format(conditions_name),  exist_ok=True)
+    os.makedirs("../to_store/{}/parameters".format(conditions_name), exist_ok=True)
+    os.makedirs("../to_store/{}/results".format(conditions_name), exist_ok=True)
     for j in range(num_sims):
         correcter=''
         if j<10:
             correcter='0'
-        out_title='res_{}{}'.format(correcter,j) + conditions_name + '.csv'
+        out_title='res_{}{}'.format(correcter,j) + base_conditions + '.csv'
         out_titles.append(out_title)
         my_string=('random_seed = ' + str(j) + '\n'+
                    'out_title = ' +  "'" + out_title + "'" + '\n'+
@@ -128,7 +140,7 @@ def in_write(dist_val, RB_time_val, num_sims, max_m_val, males, n_mar):
         for i in range(len(name_vec)):
             tack_on= str(name_vec[i]) + ' = ' + str(value_vec[i]) + '\n'
             my_string+=tack_on
-        in_title='in_{}{}'.format(correcter,j) + conditions_name
+        in_title='in_{}{}'.format(correcter,j) + base_conditions
         in_titles.append(in_title)
         with open("../to_store/{}/parameters/{}".format(conditions_name, in_title),"w") as f:
             f.write(my_string)

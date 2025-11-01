@@ -5,7 +5,7 @@ import numpy as np
 #from Batch_func import BnS
 
 
-def writebatchscript(num_sims, in_titles, out_titles, conditions_name):
+def writebatchscript(num_sims, in_titles, out_titles, conditions_name, fg_theta=None):
     script=""
     for i in range(num_sims): #assume you call from inside to_run
         script+=("python3 bowerbird_prog.py ../to_store/{}/parameters/{}\n".format(conditions_name,in_titles[i]) + 
@@ -14,13 +14,23 @@ def writebatchscript(num_sims, in_titles, out_titles, conditions_name):
     to_submit = ("#!/bin/bash" +
                  "\n#SBATCH -J " + conditions_name + 
                  "\n#SBATCH --time=07:00:00" +
-                 "\n#SBATCH -p broadwl" + 
+                 "\n#SBATCH -p compute" + 
                  "\n#SBATCH --nodes=1" +
                  "\n#SBATCH --ntasks-per-node=1" + 
                  "\n\nmodule load Anaconda3/5.1.0\n" + 
                  script)
     return to_submit
 
+
+def vary_params_fg_theta(FG_theta_vec, dist_val, RB_time_val, num_sims, max_m_val, n_males, n_mar):
+    for fg_theta in FG_theta_vec:
+        [in_titles, out_titles, conditions_name] = in_write(dist_val, RB_time_val, num_sims, max_m_val, n_males, n_mar, fg_theta)
+        script = writebatchscript(num_sims, in_titles, out_titles, conditions_name)
+        # Create simple name for .sh file (replace slashes with underscores)
+        sh_name = conditions_name.replace('/', '_')
+        full_name = "../to_run/{}.sh".format(sh_name)
+        with open(full_name, "w") as f:
+            f.write(script)
 
 def vary_params(dist_vec, m_prop_vec, RB_time_vec, num_sims, max_m_vec, n_males_vec):
     for i in range(len(dist_vec)):
