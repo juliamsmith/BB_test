@@ -21,17 +21,20 @@ for (fg_theta_dir in fg_theta_dirs) {
   fg_theta_path <- paste0(fg_vary_path, fg_theta_dir, "/")
   conditions <- list.files(fg_theta_path)
   
-  for (my_condition in conditions) {
-    my_condition <- str_remove(my_condition, ".csv") # remove .csv from the file name
+for (my_condition in conditions) {
+    my_condition <- str_remove(my_condition, ".csv")
     my_condition <- str_remove(my_condition, "results")
+    
+    print(paste("Processing condition:", my_condition))
     
     # split the string to extract parameters
     my_split <- strsplit(my_condition, "_|\\=")[[1]]
+    print(paste("Split result:", paste(my_split, collapse=" | ")))
     
     # extract parameters
     num_males <- as.numeric(my_split[9])
     num_mar <- as.numeric(my_split[11])
-    
+    print(paste("num_males:", num_males, "num_mar:", num_mar))    
     # Add to lookup table with FG_theta
     lookup_table <- rbind(lookup_table, data.frame(
       directory = my_condition,
@@ -56,12 +59,16 @@ for (fg_theta_dir in fg_theta_dirs) {
           add_column(rnd_seed = my_rnd_seed,
                      directory = my_condition,
                      fg_theta_dir = fg_theta_dir)
-        
+
+	# Count the number of attempts instead of keeping the full lists
+	tmp <- tmp %>% mutate(
+	  mar_attempts_count = str_count(mar_attempts, "\\['"),  # Count lines starting with ['
+	  mate_attempts_count = str_count(mate_attempts, "\\['")
+	)        
         tmp <- tmp %>% select(probability_maraud, successful_mating, x_pos, y_pos,
                       foraging_hrs, staying_hrs, repairing_hrs,
                       marauding_events, marauding_hrs, traveling_hrs,
-                      rnd_seed, directory, fg_theta_dir, mar_attempts, mate_attempts)
-
+                      rnd_seed, directory, fg_theta_dir, mar_attempts_count, mate_attempts_count)
 
         
         all_results <- rbind(all_results, tmp)
